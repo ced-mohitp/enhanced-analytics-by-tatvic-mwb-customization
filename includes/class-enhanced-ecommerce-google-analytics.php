@@ -70,7 +70,7 @@ class Enhanced_Ecommerce_Google_Analytics {
 		if ( defined( 'PLUGIN_NAME_VERSION' ) ) {
 			$this->version = PLUGIN_NAME_VERSION;
 		} else {
-			$this->version = '2.1.9';
+			$this->version = '2.1.6';
 		}
 		$this->plugin_name = 'enhanced-ecommerce-google-analytics';
 		$this->load_dependencies();
@@ -170,10 +170,18 @@ class Enhanced_Ecommerce_Google_Analytics {
 	private function define_public_hooks() {
 
 		$plugin_public = new Enhanced_Ecommerce_Google_Analytics_Public( $this->get_plugin_name(), $this->get_version() );
-		$this->loader->add_action("wp_head", $plugin_public, "ee_settings");
+
+		$this->loader->add_action("wp_head", $plugin_public, "add_fb_pixel");
+		
+		//mwb custom for fb tracking 
+    	if($_SERVER['REMOTE_ADDR'] != "66.249.82.178" && $_SERVER['REMOTE_ADDR'] != "66.249.82.176" && $_SERVER['REMOTE_ADDR'] != "66.249.82.180" && $_SERVER['REMOTE_ADDR'] != "74.125.208.16" && $_SERVER['REMOTE_ADDR'] != "74.125.208.20" && $_SERVER['REMOTE_ADDR'] != "74.125.208.18" && $_SERVER['REMOTE_ADDR'] != "66.249.82.153" && $_SERVER['REMOTE_ADDR'] != "66.249.82.154" && $_SERVER['REMOTE_ADDR'] != "66.249.82.152" )
+    	{	    
+		    $this->loader->add_action("wp_footer", $plugin_public, "ee_settings");  
+		}
+
 		$this->loader->add_action("wp_footer", $plugin_public, "t_products_impre_clicks");
 		$this->loader->add_action("woocommerce_thankyou", $plugin_public, "ecommerce_tracking_code");
-		$this->loader->add_action("woocommerce_after_shop_loop_item", $plugin_public, "bind_product_metadata");
+		$this->loader->add_action("woocommerce_shop_loop", $plugin_public, "bind_product_metadata");
 		$this->loader->add_action("woocommerce_after_single_product", $plugin_public, "product_detail_view");
 		$this->loader->add_action("woocommerce_after_cart",$plugin_public, "remove_cart_tracking");
 		 //check out step 1,2,3
@@ -189,6 +197,11 @@ class Enhanced_Ecommerce_Google_Analytics {
         //Add Dev ID
         $this->loader->add_action("wp_head", $plugin_public, "add_dev_id");
         $this->loader->add_action("wp_footer",$plugin_public, "tvc_store_meta_data");
+
+        $this->loader->add_action("wp_footer",$plugin_public, "mwb_tatvic_add_footer_scripts");
+
+        $this->loader->add_action("woocommerce_thankyou", $plugin_public, "mwb_tatvic_thankyou_tracking");
+        //mwb custom for fb tracking
 	}
 
 	/**
@@ -246,7 +259,7 @@ class Enhanced_Ecommerce_Google_Analytics {
 		$links[] = '<a href="' . get_admin_url(null, $setting_url) . '">Settings</a>';
 		$links[] = '<a href="https://wordpress.org/plugins/enhanced-e-commerce-for-woocommerce-store/#faq" target="_blank">FAQ</a>';
 		$links[] = '<a href="http://plugins.tatvic.com/downloads/EE-Woocommerce-Plugin-Documentation.pdf" target="_blank">Documentation</a>';
-		$links[] = '<a href="https://1.envato.market/c/1291997/275988/4415?u=https%3A%2F%2Fcodecanyon.net%2Fitem%2Factionable-google-analytics-for-woocommerce%2F9899552" target="_blank"><b>Upgrade to Premium</b></a>';
+		$links[] = '<a href="https://codecanyon.net/item/actionable-google-analytics-for-woocommerce/9899552?ref=tatvic" target="_blank"><b>Upgrade to Premium</b></a>';
 		return $links;
 	}
 	

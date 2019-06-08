@@ -28,7 +28,7 @@ class Enhanced_Ecommerce_Google_Analytics_Public {
      * @return void
      */
     //set plugin version
-    public $tvc_eeVer = '2.1.9';
+    public $tvc_eeVer = '2.1.6';
 	
 	protected $tvc_aga;
 	
@@ -219,7 +219,7 @@ class Enhanced_Ecommerce_Google_Analytics_Public {
                 }
                 </script>';
         }
-        $code = '<script async src="https://www.googletagmanager.com/gtag/js?id='.esc_js($tracking_id).'"></script>
+        $code = '<script defer src="https://www.googletagmanager.com/gtag/js?id='.esc_js($tracking_id).'"></script>
                 <script>
                   window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
@@ -247,7 +247,7 @@ class Enhanced_Ecommerce_Google_Analytics_Public {
         if (!$tracking_id)
             return;
         // Doing eCommerce tracking so unhook standard tracking from the footer
-        remove_action("wp_footer", array($this, "ee_settings"));
+        // remove_action("wp_footer", array($this, "ee_settings"));
 
         // Get the order and output tracking code
         $order = new WC_Order($order_id);
@@ -614,7 +614,7 @@ class Enhanced_Ecommerce_Google_Analytics_Public {
             }
             // ATC link Array
             if(version_compare($woocommerce->version, "2.7", "<")){
-                $prodpage_json_ATC_link[$product->add_to_cart_url()]=array("ATC-link"=>get_permalink($product->id));
+                $prodpage_json_ATC_link[wc_get_checkout_url().'?add-to-cart='.$product->get_id()]=array("ATC-link"=>get_permalink($product->id));
               
             $prodpage_json_relProd[get_permalink($product->id)] = array(
                         "tvc_id" => esc_html($product->id),
@@ -624,7 +624,7 @@ class Enhanced_Ecommerce_Google_Analytics_Public {
                         "tvc_c" => esc_html($categories),
                 );
             }else{
-                 $prodpage_json_ATC_link[$product->add_to_cart_url()]=array("ATC-link"=>get_permalink($product->get_id()));
+                 $prodpage_json_ATC_link[wc_get_checkout_url().'?add-to-cart='.$product->get_id()]=array("ATC-link"=>get_permalink($product->get_id()));
               
             $prodpage_json_relProd[get_permalink($product->get_id())] = array(
                         "tvc_id" => esc_html($product->get_id()),
@@ -793,7 +793,7 @@ class Enhanced_Ecommerce_Google_Analytics_Public {
                                     "non_interaction": true,
                                     "items": [{
                                         "id" : t_prod_data_json[t_prod_url_key].tvc_i,
-                                        "name":t_prod_data_json[t_prod_url_key].tvc_n,
+                                        "name":t_prod_data_json[t_prod_url_key].tvc_i,
                                         "category" : t_prod_data_json[t_prod_url_key].tvc_c,
                                         "price": t_prod_data_json[t_prod_url_key].tvc_p,
                                         "quantity" :t_qty
@@ -1170,5 +1170,377 @@ class Enhanced_Ecommerce_Google_Analytics_Public {
         //return $code;
         //make product data json on check out page
         $this->wc_version_compare("tvc_ch=" . json_encode($chkout_json) . ";");
+    }
+
+    //mwb custom for fb tracking 
+
+    public function mwb_tatvic_add_footer_scripts(){
+
+      $currency = get_woocommerce_currency();
+
+      $js_data = array('page' => '' , 'currency' => $currency);
+
+      $js_data['ajax_url'] = admin_url( 'admin-ajax.php' ) ;
+
+      if(is_shop()){
+
+        $js_data['page'] = 'shop' ; 
+
+        $js_items = array();
+
+        $js_items_imp = array();
+
+        if( wc()->query->get_main_query()->post_count > 0 ){
+
+          foreach (wc()->query->get_main_query()->posts as $key => $post) {
+
+            $product = wc_get_product( $post->ID );
+
+            $category = get_the_terms( $post->ID , "product_cat" );
+
+            $categories = "";
+
+            if ($category) {
+
+              foreach ($category as $term) {
+
+                $categories.=$term->name . ",";
+
+              }
+
+            }
+
+            $categories = rtrim($categories, ",");
+
+            $item_array = array(
+
+              "id" => esc_js($post->ID),
+
+              "name" => $product->get_title(),
+
+              "price"=> esc_js($product->get_price()),
+
+              "category" => $categories,
+
+              "quantity"=> "1",
+
+            );
+
+            $js_items[$post->ID] = $item_array ;
+
+            $js_items_imp[get_post_permalink($post->ID)] = $item_array ;
+
+            if($product->is_type('variable')){
+              $i = 0;
+
+              foreach ( $product->get_children() as $child_id ) {
+
+                if($child_id){
+
+                  $child_product = wc_get_product( $child_id ) ; 
+
+                  $item_array = array(
+
+                    "id" => esc_js($child_id),
+
+                    "name" => $child_product->get_name(),
+
+                    "price"=> esc_js($child_product->get_price()),
+
+                    "category" => $categories,
+
+                    "quantity"=> "1",
+
+                  );
+
+                  $js_items[$child_id] = $item_array ;
+
+                  if($i == 0 ){
+
+                    $js_items_imp[get_post_permalink($post->ID)] = $item_array ;
+                  }
+
+                  $i++ ;
+                }
+              }
+            } 
+          }
+
+        }
+
+        $js_data['js_items_imp'] = $js_items_imp ;
+
+        $js_data['js_items'] = $js_items ;
+
+
+      }
+
+      if(is_checkout() && !is_wc_endpoint_url( 'order-received' )){
+
+        $js_data['page'] = 'checkout' ;
+
+        $cart_items =   WC()->cart->get_cart();
+
+        $js_items = array();
+
+        if(!empty($cart_items)){
+
+          foreach ($cart_items as $key => $item) {
+
+            $product = wc_get_product($item['product_id']);
+
+            $category = get_the_terms($product->get_id(), "product_cat");
+
+            $categories = "";
+
+            if ($category) {
+
+              foreach ($category as $term) {
+
+                $categories.=$term->name . ",";
+
+              }
+
+            }
+
+            $categories = rtrim($categories, ",");
+
+            $js_items[] = array(
+
+              "id" => esc_js($item['product_id']),
+
+              "name" => $product->get_title(),
+
+              "price"=> esc_js($product->get_price()),
+
+              "category" => $categories,
+
+              "quantity"=> $item['quantity'],
+
+            );
+
+          }
+
+        }
+
+        $js_data['js_items'] = $js_items ;
+
+        $js_data['value'] = WC()->cart->total;
+
+      }
+
+      if( is_wc_endpoint_url( 'order-received' ) ){
+
+        $js_data['page'] = 'thankyou' ;
+
+        global $mwb_tatvic_order_id ;
+
+        $order = wc_get_order( $mwb_tatvic_order_id );
+
+        if(!empty($order) &&  get_post_meta($order->get_id() , 'mwb_anawoo_order_captured' , true) != "yes"){
+
+          $coupon_used = $order->get_used_coupons();
+
+          $coupons_count = count( $coupon_used );
+
+          $final_coupon_list = '';
+
+          $i = 1;
+
+          if( !empty($coupon_used)){
+
+            foreach ($coupon_used as $coupon) {
+
+              $final_coupon_list .= $coupon;
+
+              if( $i < $coupons_count )
+
+                $final_coupon_list .= ', ';
+
+              $i++;
+
+            }
+
+          }
+
+          $order_items = $order->get_items();
+
+          $js_items = array();
+
+          if(!empty($order_items)){
+
+            foreach ($order_items as $key => $item) {
+
+              if($item->is_type( 'line_item' )){
+
+                $product = $item->get_product();
+
+                $categories = get_the_terms($product->get_id(), "product_cat");
+
+                $category_arr = array();
+
+                if (!empty($categories)) {
+
+                  foreach ($categories as $category) {
+
+                    $category_arr[] = $category->name;
+
+                  }
+
+                }
+
+                $categories = join(",", $category_arr);
+
+                $js_item = array(
+
+                  "id" => esc_js($item->get_product_id()),
+
+                  "name" => $item->get_name(),
+
+                  "quantity"=> esc_js($item->get_quantity()),
+
+                  "price" => esc_js($product->get_price()),
+
+                  "category" => $categories
+
+                );
+
+                $js_items[] = $js_item;
+
+              }
+
+            }
+
+          }
+
+
+          $js_data['js_items'] = $js_items ;
+
+          $js_data['coupon'] = $final_coupon_list ;
+
+          $js_data['order_tracked'] = 'false' ; 
+
+          $js_data['value'] = $order->get_total() ; 
+
+          $js_data['order_id'] = $order->get_id();
+
+          update_post_meta( $order->get_id() , 'mwb_anawoo_order_captured' , 'yes' ) ;
+
+        }
+        else{
+          $js_data['order_tracked'] = 'true' ;
+        }
+
+      }
+
+      if(is_product()){
+
+        global $product,$woocommerce;
+
+        $js_data['page'] = 'single_product' ;
+
+        $category = get_the_terms($product->get_id(), "product_cat");
+
+        $currency = get_woocommerce_currency();
+
+        $categories = "";
+
+        if ($category) {
+
+          foreach ($category as $term) {
+
+            $categories.=$term->name . ",";
+
+          }
+
+        }
+
+        $categories = rtrim($categories, ",");
+
+        $js_items = array();
+
+        $js_items[$product->get_id()] = array(
+
+          "id" => esc_js($product->get_id()),
+
+          "name" => $product->get_title(),
+
+          "price"=> esc_js($product->get_price()),
+
+          "category" => $categories,
+
+          "quantity"=> "1",
+
+        );
+
+
+        if($product->is_type('variable')){
+
+          foreach ( $product->get_children() as $child_id ) {
+
+            if($child_id){
+
+              $child_product = wc_get_product( $child_id ) ; 
+
+              $item_array = array(
+
+                "id" => esc_js($child_id),
+
+                "name" => $child_product->get_name(),
+
+                "price"=> esc_js($child_product->get_price()),
+
+                "category" => $categories,
+
+                "quantity"=> "1",
+
+              );
+
+              $js_items[$child_id] = $item_array ;
+            }
+          }
+        }
+
+         $js_data['js_items'] = $js_items ;
+      }
+
+
+      wp_register_script( 'mwb-tatvic-footer-script', plugin_dir_url( __FILE__ ) . 'js/enhanced-ecommerce-google-analytics-public.js', array( 'jquery' ), time() , true );
+
+      wp_localize_script( 'mwb-tatvic-footer-script', 'js_data', $js_data ) ;
+
+      wp_enqueue_script('mwb-tatvic-footer-script');
+
+    }
+
+    //mwb custom for fb tracking 
+
+    public function mwb_tatvic_thankyou_tracking($order_id){
+
+      $GLOBALS['mwb_tatvic_order_id'] = $order_id ;
+
+    }
+
+    //mwb custom for fb tracking 
+
+    public function add_fb_pixel(){
+
+      echo "<script async type='text/javascript'>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://makewebbetter.com/wp-content/plugins/mwb-theme-customization/assets/local/fbevents.js');
+        fbq('init', '168381580430706');
+        fbq('track', 'PageView');
+      </script>" ; 
+
+      echo '<noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=168381580430706&ev=PageView&noscript=1"
+      /></noscript>' ; 
+
     }
 }

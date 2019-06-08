@@ -35,7 +35,7 @@
 									  </thead>
 									  <tbody>
 										<tr>
-										  <td class="w-25 option">Basic UA Tracking (Pageviews)</td>
+										  <td class="w-25 option">Basic UA Tracking</td>
 										  <td><i class="fa fa-check"></i></td>
 										  <td><i class="fa fa-check"></i></td>
 										</tr>
@@ -65,12 +65,12 @@
 										  <td><i class="fa fa-check"></i></td>
 										</tr>
 										<tr>
-										  <td class="option">Product Variations (eg. color,size)</td>
+										  <td class="option">Product Variation</td>
 										  <td><i class="fa fa-times"></i></td>
 										  <td><i class="fa fa-check"></i></td>
 										</tr>
 										<tr>
-										  <td class="option">Automated Product Refund (from Admin Panel)</td>
+										  <td class="option">Automated Product Refund</td>
 										  <td><i class="fa fa-times"></i></td>
 										  <td><i class="fa fa-check"></i></td>
 										</tr>
@@ -80,17 +80,12 @@
 										  <td><i class="fa fa-check"></i></td>
 										</tr>
 										<tr>
-										  <td class="option">Facebook Pixel Implementation (Standard Ecommerce Events)</td>
+										  <td class="option">Facebook Pixel Tracking</td>
 										  <td><i class="fa fa-times"></i></td>
 										  <td><i class="fa fa-check"></i></td>
 										</tr>
 										<tr>
 										  <td class="option">Add Google Optimize Snippet</td>
-										  <td><i class="fa fa-times"></i></td>
-										  <td><i class="fa fa-check"></i></td>
-										</tr>
-										<tr>
-										  <td class="option">Site Speed Sample Rate</td>
 										  <td><i class="fa fa-times"></i></td>
 										  <td><i class="fa fa-check"></i></td>
 										</tr>
@@ -135,11 +130,6 @@
 										  <td><i class="fa fa-times"></i></td>
 										  <td><i class="fa fa-check"></i></td>
 										</tr>
-										<tr>
-										  <td class="option">Data Studio Dashboards (Paid)</td>
-										  <td><i class="fa fa-times"></i></td>
-										  <td><i class="fa fa-check"></i></td>
-										</tr>
 									  </tbody>
 									  <tfoot class="thead-inverse">
 										<tr>
@@ -149,7 +139,7 @@
 										</tr>
 									  </tfoot>
 									</table>
-									<p class="description" style="font-size: 15px;"><strong>Feel free to contact us regarding premium version inquiry at <span style="color:blue;font-size:15px;">analytics2@tatvic.com<span></strong>.<br/>Agencies & Marketers can also contact us for the bulk licenses for their clients.</p>
+									<p class="description" style="font-size: 15px;"><strong>Feel free to contact us regarding premium version inquiry at <span style="color:blue;font-size:15px;">analytics2@tatvic.com<span></strong>.<br/>Developers & Marketers can also contact us for the bulk license for their clients.</p>
 								</div>
 								</div>
 							</div>
